@@ -18,8 +18,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{4BBB44E6-99A9-4AD2-B5FD-5DD046708067}</ProjectGuid>
-    <RootNamespace>NativeGL</RootNamespace>
+    <ProjectGuid>{9085B287-EEBB-4332-8C3D-45E4463C891E}</ProjectGuid>
+    <RootNamespace>offscreen_render</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|Tegra-Android'">

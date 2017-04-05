@@ -19,7 +19,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4BBB44E6-99A9-4AD2-B5FD-5DD046708067}</ProjectGuid>
-    <RootNamespace>NativeGL</RootNamespace>
+    <RootNamespace>_template</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|Tegra-Android'">
