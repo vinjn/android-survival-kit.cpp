@@ -1,0 +1,5 @@
+obj/
+libs/
+Tegra-Android/
+*.db
+.suo
