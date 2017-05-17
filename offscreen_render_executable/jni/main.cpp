@@ -26,8 +26,8 @@
 #include <android/log.h>
 #include "../../native_app_glue/android_native_app_glue.h"
 
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "playpen", __VA_ARGS__))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "playpen", __VA_ARGS__))
 
 #define LOG_ACCELEROMETER false
 
@@ -240,6 +240,7 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 
 int main()
 {
+    LOGI("hello");
     return 0;
 }
 

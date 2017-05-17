@@ -1,0 +1,1 @@
+adb logcat | ndk-stack -sym Tegra-Android/Debug
