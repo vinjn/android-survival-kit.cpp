@@ -18,7 +18,7 @@
                 android:configChanges="orientation|keyboardHidden">
             <!-- Tell NativeActivity the name of our .so -->
             <meta-data android:name="android.app.lib_name"
-                    android:value="NativeGL" />
+                    android:value="_template" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

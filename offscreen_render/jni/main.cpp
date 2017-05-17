@@ -26,10 +26,44 @@
 #include <android/log.h>
 #include "../../native_app_glue/android_native_app_glue.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "../../stb/stb_image_write.h"
+
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "playpen", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "playpen", __VA_ARGS__))
 
 #define LOG_ACCELEROMETER false
+
+EGLint w = 800, h = 600;
+
+void saveFrame(const char* name)
+{
+    const int comp = 3;
+    unsigned char* image = (unsigned char*)malloc(w*h*comp);
+    if (image == NULL)
+        return;
+
+    glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+    if (strstr(name, ".png"))
+    {
+        stbi_write_png(name, w, h, comp, image, w*comp);
+    }
+    else if (strstr(name, ".tga"))
+    {
+        stbi_write_tga(name, w, h, comp, image);
+    }
+    else if (strstr(name, ".bmp"))
+    {
+        stbi_write_bmp(name, w, h, comp, image);
+    }
+    else
+    {
+        LOGW("Unsupported image format %s.\n", name);
+    }
+    LOGI("Saved to %s", name);
+    free(image);
+}
 
 /**
  * Our saved state data.
@@ -79,7 +113,6 @@ static int engine_init_display(struct engine* engine) {
             EGL_NONE
     };
 
-    EGLint w = 800, h = 600;
     EGLint dummy, format;
     EGLint numConfigs;
     EGLConfig config;
@@ -96,6 +129,7 @@ static int engine_init_display(struct engine* engine) {
 
     EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
+    LOGI("eglInitialize");
     eglInitialize(display, 0, 0);
 
     /* Here, the application chooses the configuration it desires. In this
@@ -109,13 +143,20 @@ static int engine_init_display(struct engine* engine) {
      * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
     eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
 
-    ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
+    if (false)
+    {
+        LOGI("ANativeWindow_setBuffersGeometry");
+        ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
+    }
 
+    LOGI("eglCreatePbufferSurface");
     // create a pixelbuffer surface
     surface = eglCreatePbufferSurface(display, config, surfaceAttr);
 
+    LOGI("eglCreateContext");
     context = eglCreateContext(display, config, NULL, NULL);
 
+    LOGI("eglMakeCurrent");
     if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
         LOGW("Unable to eglMakeCurrent");
         return -1;
@@ -131,6 +172,7 @@ static int engine_init_display(struct engine* engine) {
     engine->height = h;
     engine->state.angle = 0;
 
+    LOGI("glHint");
     // Initialize GL state.
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     glEnable(GL_CULL_FACE);
@@ -153,6 +195,8 @@ static void engine_draw_frame(struct engine* engine) {
     glClearColor(((float)engine->state.x)/engine->width, engine->state.angle,
             ((float)engine->state.y)/engine->height, 1);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    saveFrame("/sdcard/playpen.bmp");
 
     eglSwapBuffers(engine->display, engine->surface);
 }
