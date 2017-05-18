@@ -26,10 +26,44 @@
 #include <android/log.h>
 #include "../../native_app_glue/android_native_app_glue.h"
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "../../stb/stb_image_write.h"
+
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "playpen", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "playpen", __VA_ARGS__))
 
 #define LOG_ACCELEROMETER false
+
+EGLint w = 800, h = 600;
+
+void saveFrame(const char* name)
+{
+    const int comp = 3;
+    unsigned char* image = (unsigned char*)malloc(w*h*comp);
+    if (image == NULL)
+        return;
+
+    glReadPixels(0, 0, w, h, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+    if (strstr(name, ".png"))
+    {
+        stbi_write_png(name, w, h, comp, image, w*comp);
+    }
+    else if (strstr(name, ".tga"))
+    {
+        stbi_write_tga(name, w, h, comp, image);
+    }
+    else if (strstr(name, ".bmp"))
+    {
+        stbi_write_bmp(name, w, h, comp, image);
+    }
+    else
+    {
+        LOGW("Unsupported image format %s.\n", name);
+    }
+    LOGI("adb pull %s", name);
+    free(image);
+}
 
 /**
  * Our saved state data.
@@ -79,7 +113,6 @@ static int engine_init_display(struct engine* engine) {
             EGL_NONE
     };
 
-    EGLint w = 800, h = 600;
     EGLint dummy, format;
     EGLint numConfigs;
     EGLConfig config;
@@ -96,6 +129,7 @@ static int engine_init_display(struct engine* engine) {
 
     EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
+    LOGI("eglInitialize");
     eglInitialize(display, 0, 0);
 
     /* Here, the application chooses the configuration it desires. In this
@@ -109,20 +143,27 @@ static int engine_init_display(struct engine* engine) {
      * ANativeWindow buffers to match, using EGL_NATIVE_VISUAL_ID. */
     eglGetConfigAttrib(display, config, EGL_NATIVE_VISUAL_ID, &format);
 
-    ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
+    if (false)
+    {
+        LOGI("ANativeWindow_setBuffersGeometry");
+        ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
+    }
 
+    LOGI("eglCreatePbufferSurface");
     // create a pixelbuffer surface
     surface = eglCreatePbufferSurface(display, config, surfaceAttr);
 
+    LOGI("eglCreateContext");
     context = eglCreateContext(display, config, NULL, NULL);
 
+    LOGI("eglMakeCurrent");
     if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
         LOGW("Unable to eglMakeCurrent");
         return -1;
     }
 
-    //eglQuerySurface(display, surface, EGL_WIDTH, &w);
-    //eglQuerySurface(display, surface, EGL_HEIGHT, &h);
+    eglQuerySurface(display, surface, EGL_WIDTH, &w);
+    eglQuerySurface(display, surface, EGL_HEIGHT, &h);
 
     engine->display = display;
     engine->context = context;
@@ -131,10 +172,10 @@ static int engine_init_display(struct engine* engine) {
     engine->height = h;
     engine->state.angle = 0;
 
+    LOGI("glHint");
     // Initialize GL state.
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     glEnable(GL_CULL_FACE);
-    glShadeModel(GL_SMOOTH);
     glDisable(GL_DEPTH_TEST);
 
     return 0;
@@ -150,11 +191,13 @@ static void engine_draw_frame(struct engine* engine) {
     }
 
     // Just fill the screen with a color.
-    glClearColor(((float)engine->state.x)/engine->width, engine->state.angle,
-            ((float)engine->state.y)/engine->height, 1);
+    glClearColor(0.259, 0.259, 0.259, 1);
     glClear(GL_COLOR_BUFFER_BIT);
+    glFinish();
 
     eglSwapBuffers(engine->display, engine->surface);
+
+    saveFrame("/sdcard/playpen.bmp");
 }
 
 /**
@@ -240,7 +283,8 @@ static void engine_handle_cmd(struct android_app* app, int32_t cmd) {
 
 int main()
 {
-    LOGI("hello");
+    android_app fakeState = {};
+    android_main(&fakeState);
     return 0;
 }
 
@@ -256,17 +300,24 @@ void android_main(struct android_app* state) {
     app_dummy();
 
     memset(&engine, 0, sizeof(engine));
+    engine.animating = 1;
+
     state->userData = &engine;
     state->onAppCmd = engine_handle_cmd;
     state->onInputEvent = engine_handle_input;
     engine.app = state;
 
-    // Prepare to monitor accelerometer
-    engine.sensorManager = ASensorManager_getInstance();
-    engine.accelerometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager,
-            ASENSOR_TYPE_ACCELEROMETER);
-    engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager,
-            state->looper, LOOPER_ID_USER, NULL, NULL);
+    engine_init_display(&engine);
+
+    if (false)
+    {
+        // Prepare to monitor accelerometer
+        engine.sensorManager = ASensorManager_getInstance();
+        engine.accelerometerSensor = ASensorManager_getDefaultSensor(engine.sensorManager,
+                ASENSOR_TYPE_ACCELEROMETER);
+        engine.sensorEventQueue = ASensorManager_createEventQueue(engine.sensorManager,
+                state->looper, LOOPER_ID_USER, NULL, NULL);
+    }
 
     if (state->savedState != NULL) {
         // We are starting with a previous saved state; restore from it.
@@ -275,12 +326,15 @@ void android_main(struct android_app* state) {
 
     // loop waiting for stuff to do.
 
+    LOGI("while(1)");
+
     while (1) {
         // Read all pending events.
         int ident;
         int events;
         struct android_poll_source* source;
 
+        // LOGI("while ALooper_pollAll");
         // If not animating, we will block forever waiting for events.
         // If animating, we loop until all events are read, then continue
         // to draw the next frame of animation.
@@ -323,8 +377,11 @@ void android_main(struct android_app* state) {
 
             // Drawing is throttled to the screen update rate, so there
             // is no need to do timing here.
+            // LOGI("engine_draw_frame");
             engine_draw_frame(&engine);
         }
     }
+
+    engine_term_display(&engine);
 }
 //END_INCLUDE(all)

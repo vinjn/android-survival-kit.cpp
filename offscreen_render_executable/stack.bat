@@ -1,1 +1,1 @@
-adb logcat | ndk-stack -sym Tegra-Android/Debug
+adb logcat | ndk-stack -sym obj/local/armeabi-v7a
