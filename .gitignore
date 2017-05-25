@@ -3,4 +3,5 @@ libs/
 Tegra-Android/
 *.db
 .suo
-/offscreen_render/*.user
+*.user
+*.sln

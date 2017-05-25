@@ -19,7 +19,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{4BBB44E6-99A9-4AD2-B5FD-5DD046708067}</ProjectGuid>
-    <RootNamespace>_template</RootNamespace>
+    <RootNamespace>_template_vulkan_apk</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|Tegra-Android'">
@@ -46,7 +46,7 @@
       <PreprocessorDefinitions>DISABLE_IMPORTGL</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>android;EGL;GLESv1_CM</AdditionalDependencies>
+      <AdditionalDependencies>android;vulkan</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Tegra-Android'">
@@ -55,7 +55,7 @@
       <PreprocessorDefinitions>DISABLE_IMPORTGL</PreprocessorDefinitions>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>android;EGL;GLESv1_CM</AdditionalDependencies>
+      <AdditionalDependencies>android;vulkan</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Shipping|Tegra-Android'">
