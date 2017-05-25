@@ -21,9 +21,13 @@
     <ClCompile Include="jni\main.cpp">
       <Filter>jni</Filter>
     </ClCompile>
-    <ClCompile Include="..\native_app_glue\android_native_app_glue.c" />
+    <ClCompile Include="..\3rdparty\native_app_glue\android_native_app_glue.c">
+      <Filter>jni</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\native_app_glue\android_native_app_glue.h" />
+    <ClInclude Include="..\3rdparty\native_app_glue\android_native_app_glue.h">
+      <Filter>jni</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

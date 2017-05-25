@@ -24,7 +24,7 @@
 
 #include <android/sensor.h>
 #include <android/log.h>
-#include "../../native_app_glue/android_native_app_glue.h"
+#include "../../3rdparty/native_app_glue/android_native_app_glue.h"
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "survivor", __VA_ARGS__))
 #define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "survivor", __VA_ARGS__))
