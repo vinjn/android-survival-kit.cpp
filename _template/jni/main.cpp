@@ -20,14 +20,14 @@
 #include <errno.h>
 
 #include <EGL/egl.h>
-#include <GLES/gl.h>
+#include <GLES3/gl32.h>
 
 #include <android/sensor.h>
 #include <android/log.h>
 #include "../../native_app_glue/android_native_app_glue.h"
 
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-activity", __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "native-activity", __VA_ARGS__))
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "survivor", __VA_ARGS__))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "survivor", __VA_ARGS__))
 
 #define LOG_ACCELEROMETER false
 
@@ -71,6 +71,7 @@ static int engine_init_display(struct engine* engine) {
      * component compatible with on-screen windows
      */
     const EGLint attribs[] = {
+            EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,    // default: EGL_OPENGL_ES_BIT
             EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
             EGL_BLUE_SIZE, 8,
             EGL_GREEN_SIZE, 8,
@@ -101,6 +102,12 @@ static int engine_init_display(struct engine* engine) {
     ANativeWindow_setBuffersGeometry(engine->app->window, 0, 0, format);
 
     surface = eglCreateWindowSurface(display, config, engine->app->window, NULL);
+
+    EGLint contexAttribs[] =
+    {
+        EGL_CONTEXT_CLIENT_VERSION, 3,
+        EGL_NONE
+    };    
     context = eglCreateContext(display, config, NULL, NULL);
 
     if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
@@ -119,9 +126,7 @@ static int engine_init_display(struct engine* engine) {
     engine->state.angle = 0;
 
     // Initialize GL state.
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     glEnable(GL_CULL_FACE);
-    glShadeModel(GL_SMOOTH);
     glDisable(GL_DEPTH_TEST);
 
     return 0;

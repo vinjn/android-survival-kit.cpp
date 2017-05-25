@@ -20,7 +20,7 @@
 #include <errno.h>
 
 #include <EGL/egl.h>
-#include <GLES/gl.h>
+#include <GLES3/gl32.h>
 
 #include <android/sensor.h>
 #include <android/log.h>
@@ -29,8 +29,8 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../../stb/stb_image_write.h"
 
-#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "playpen", __VA_ARGS__))
-#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "playpen", __VA_ARGS__))
+#define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "survivor", __VA_ARGS__))
+#define LOGW(...) ((void)__android_log_print(ANDROID_LOG_WARN, "survivor", __VA_ARGS__))
 
 #define LOG_ACCELEROMETER false
 
@@ -154,7 +154,12 @@ static int engine_init_display(struct engine* engine) {
     surface = eglCreatePbufferSurface(display, config, surfaceAttr);
 
     LOGI("eglCreateContext");
-    context = eglCreateContext(display, config, NULL, NULL);
+    EGLint contexAttribs[] =
+    {
+        EGL_CONTEXT_CLIENT_VERSION, 3,
+        EGL_NONE
+    };
+    context = eglCreateContext(display, config, NULL, contexAttribs);
 
     LOGI("eglMakeCurrent");
     if (eglMakeCurrent(display, surface, surface, context) == EGL_FALSE) {
@@ -174,9 +179,7 @@ static int engine_init_display(struct engine* engine) {
 
     LOGI("glHint");
     // Initialize GL state.
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_FASTEST);
     glEnable(GL_CULL_FACE);
-    glShadeModel(GL_SMOOTH);
     glDisable(GL_DEPTH_TEST);
 
     return 0;
@@ -196,7 +199,7 @@ static void engine_draw_frame(struct engine* engine) {
             ((float)engine->state.y)/engine->height, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    saveFrame("/sdcard/playpen.bmp");
+    saveFrame("/sdcard/survivor.bmp");
 
     eglSwapBuffers(engine->display, engine->surface);
 }
